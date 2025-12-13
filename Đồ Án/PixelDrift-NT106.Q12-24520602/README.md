@@ -1,10 +1,10 @@
 # 🏎️ Pixel Drift - Real-time Multiplayer Racing Game
 
-> **Đồ án môn học: Lập trình mạng căn bản**
->
-> Một tựa game đua xe đối kháng thời gian thực (Real-time) được xây dựng trên nền tảng **C# WinForms**, sử dụng kỹ thuật **TCP Socket** để đảm bảo độ trễ thấp nhất.
+![Status](https://img.shields.io/badge/Status-Completed-success) ![Platform](https://img.shields.io/badge/Platform-Windows_Forms-blue) ![Language](https://img.shields.io/badge/Language-C%23-green)
 
-![Banner Game](https://via.placeholder.com/800x200?text=Pixel+Drift+Game+Banner)
+> **Đồ án môn học: Lập trình mạng căn bản / Thực hành Lập trình mạng**
+>
+> Một tựa game đua xe đối kháng thời gian thực (Real-time) được xây dựng trên nền tảng **C# WinForms**, sử dụng kỹ thuật **TCP Socket** để đảm bảo độ trễ thấp nhất trong môi trường LAN/VPN.
 
 ---
 
@@ -12,37 +12,41 @@
 1. [Giới thiệu](#-giới-thiệu)
 2. [Tính năng nổi bật](#-tính-năng-nổi-bật)
 3. [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-4. [Kiến trúc hệ thống & Database](#-kiến-trúc-hệ-thống--database)
-5. [Cài đặt & Hướng dẫn sử dụng](#-cài-đặt--hướng-dẫn-sử-dụng)
-6. [Thành viên thực hiện](#-thành-viên-thực-hiện)
+4. [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
+5. [Thiết kế Cơ sở dữ liệu](#-thiết-kế-cơ-sở-dữ-liệu)
+6. [Cài đặt & Hướng dẫn sử dụng](#-cài-đặt--hướng-dẫn-sử-dụng)
+7. [Thành viên thực hiện](#-thành-viên-thực-hiện)
 
 ---
 
 ## 📖 Giới thiệu
 
-**Pixel Drift** giải quyết bài toán đồng bộ dữ liệu tốc độ cao trong môi trường mạng LAN/VPN. Thay vì sử dụng các mô hình Web Server truyền thống (HTTP) gây độ trễ, nhóm phát triển đã xây dựng một hệ thống **Client-Server** thuần túy sử dụng **Socket**, cho phép cập nhật vị trí và trạng thái xe liên tục (60 FPS) giữa các người chơi.
+**Pixel Drift** giải quyết bài toán đồng bộ dữ liệu tốc độ cao. Thay vì sử dụng các mô hình Web Server truyền thống (HTTP) gây độ trễ, nhóm phát triển đã xây dựng một hệ thống **Client-Server** thuần túy sử dụng **Socket**, cho phép cập nhật vị trí và trạng thái xe liên tục (60 FPS) giữa các người chơi.
+
+**Điểm nhấn:**
+* ⚡ **Zero Latency Logic:** Sử dụng giao thức TCP truyền trưc tiếp gói tin JSON.
+* 🛡️ **Bảo mật:** Mã hóa mật khẩu, xác thực phiên làm việc.
+* 💾 **Persistance:** Lưu trữ dữ liệu người dùng bền vững với SQLite.
 
 ---
 
 ## 🚀 Tính năng nổi bật
 
-### 1. Hệ thống Tài khoản & Sảnh (Lobby)
-* 🔐 **Đăng ký / Đăng nhập:** Bảo mật mật khẩu (Mã hóa), xác thực tài khoản.
-* 📧 **Quên mật khẩu:** Hỗ trợ lấy lại mật khẩu qua Email.
-* 🏠 **Phòng Game:**
-    * Tạo phòng (Host).
-    * Vào phòng (Join) qua ID.
-    * Tìm kiếm người chơi online.
+### 1. Hệ thống Tài khoản (Auth)
+* **Đăng ký / Đăng nhập:** Xác thực người dùng, mã hóa mật khẩu trước khi lưu.
+* **Quên mật khẩu:** Quy trình lấy lại mật khẩu an toàn.
+* **Thông tin cá nhân:** Xem và cập nhật hồ sơ người chơi.
 
-### 2. Gameplay (Real-time)
-* 🏎️ **Đồng bộ vị trí:** Sử dụng gói tin JSON qua TCP để đồng bộ tọa độ X, Y của xe đối thủ mượt mà.
-* 💥 **Xử lý va chạm:** Server tính toán va chạm với chướng ngại vật và gửi phản hồi rung/âm thanh về Client.
-* ⏱️ **Đồng bộ thời gian:** Thời gian trận đấu được quản lý tập trung tại Server.
-* 🏆 **Lưu điểm tự động:** Tự động ghi nhận thành tích vào Database ngay khi kết thúc ván.
+### 2. Sảnh chờ (Lobby)
+* **Tạo phòng (Host):** Người chơi tự tạo phòng và chờ đối thủ.
+* **Vào phòng (Join):** Tìm và vào phòng thông qua ID hoặc IP.
+* **Tìm kiếm:** Tra cứu người chơi online.
+* **Bảng xếp hạng:** Xem Top 50 cao thủ (Update real-time).
 
-### 3. Thống kê
-* 📊 **Bảng xếp hạng (Leaderboard):** Top 50 người chơi điểm cao nhất.
-* 🔍 **Tìm kiếm lịch sử:** Tra cứu thành tích của người chơi bất kỳ.
+### 3. Gameplay (Real-time)
+* **Đồng bộ tọa độ:** Xe đối thủ di chuyển mượt mà nhờ gói tin JSON cập nhật 60 lần/giây.
+* **Vật lý & Va chạm:** Xử lý va chạm chướng ngại vật phía Server, trả phản hồi (rung/âm thanh) về Client.
+* **Lưu điểm thông minh:** Cơ chế Upsert (Cập nhật hoặc Thêm mới) điểm số ngay khi ván đấu kết thúc.
 
 ---
 
@@ -50,31 +54,41 @@
 
 | Thành phần | Công nghệ / Thư viện |
 | :--- | :--- |
-| **Ngôn ngữ** | C# (.NET Framework) |
-| **Giao diện** | Windows Forms (WinForms) |
-| **Giao thức mạng** | **TCP Sockets** (System.Net.Sockets) cho Gameplay.<br>**UDP** cho việc tự động tìm IP Server (Broadcast). |
-| **Cơ sở dữ liệu** | **SQLite** (Nhúng trực tiếp, không cần cài đặt Server SQL). |
-| **Định dạng tin** | JSON (Newtonsoft.Json) để đóng gói dữ liệu. |
+| **Ngôn ngữ** | C# (.NET Framework 4.7.2+) |
+| **Framework** | Windows Forms (WinForms) |
+| **Networking** | `System.Net.Sockets` (TCP cho Game, UDP cho Discovery) |
+| **Database** | **SQLite** (Nhúng, không cần cài server riêng) |
+| **Serialization** | `Newtonsoft.Json` (JSON.NET) |
 
 ---
 
-## 🏗 Kiến trúc hệ thống & Database
+## 🏗 Kiến trúc hệ thống
 
-### 1. Tại sao dùng Socket thay vì HTTP?
-Game yêu cầu tốc độ cập nhật 60 lần/giây.
-* **HTTP (Request-Response):** Phải thiết lập lại kết nối liên tục $\rightarrow$ Độ trễ cao, lag.
-* **TCP Socket (Full-duplex):** Giữ kết nối liên tục, Server chủ động đẩy dữ liệu (Push) $\rightarrow$ **Trải nghiệm mượt mà, Real-time.**
+### Tại sao chọn TCP Socket thay vì HTTP?
 
-### 2. Thiết kế Database (SQLite)
-Hệ thống sử dụng mô hình quan hệ **1-1** tối ưu hóa:
+Game yêu cầu tốc độ phản hồi tính bằng mili-giây.
 
-* **Bảng `Info_User`:** Lưu thông tin đăng nhập (Username, Password, Email).
-* **Bảng `ScoreBoard`:** Lưu thành tích tích lũy.
-    * Sử dụng `UserId` làm Khóa chính (PK) và Khóa ngoại (FK).
-    * Cơ chế **Upsert**: Cộng dồn điểm vào dòng cũ, không tạo dòng rác.
+| Tiêu chí | HTTP (Web Server) | TCP Socket (Pixel Drift) |
+| :--- | :--- | :--- |
+| **Kết nối** | Đóng mở liên tục (Stateless) | **Duy trì liên tục (Persistent)** |
+| **Cơ chế** | Client phải hỏi (Pull) | **Server tự đẩy tin (Push)** |
+| **Header** | Cồng kềnh (Cookie, Token...) | **Gọn nhẹ (Raw Data)** |
+| **Độ trễ** | Cao (Lag) | **Thấp (Real-time)** |
+
+### Luồng dữ liệu (Data Flow)
 
 ```mermaid
-erDiagram
-    Info_User ||--|| ScoreBoard : "1 User - 1 Bảng điểm"
-    Info_User { int Id, string Username, string Password }
-    ScoreBoard { int UserId, int WinCount, real TotalScore }
+sequenceDiagram
+    participant Client A
+    participant Server
+    participant Database
+    
+    Client A->>Server: Gửi Tọa độ (X, Y)
+    Server-->>Client A: Broadcast (Vị trí đối thủ)
+    
+    Note over Client A, Server: Loop 60 lần/giây
+    
+    Client A->>Server: Game Over (Gửi điểm)
+    Server->>Database: INSERT / UPDATE Score
+    Database-->>Server: Success
+    Server-->>Client A: Hiển thị bảng điểm
