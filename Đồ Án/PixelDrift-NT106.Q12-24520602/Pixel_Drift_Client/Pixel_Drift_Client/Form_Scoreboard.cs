@@ -10,16 +10,16 @@ namespace Pixel_Drift
 {
     public partial class Form_ScoreBoard : Form
     {
-        public Form_ScoreBoard(TcpClient tcpClient)
+        public Form_ScoreBoard(TcpClient Tcp_Client)
         {
             InitializeComponent();
 
-            ClientManager.OnMessageReceived += HandleServerMessage;
+            Client_Manager.On_Message_Received += Handle_Server_Message;
 
-            LoadScoreBoard();
+            Load_Score_Board();
         }
 
-        private void HandleServerMessage(string message)
+        private void Handle_Server_Message(string Message)
         {
             if (this.Disposing || this.IsDisposed || !this.IsHandleCreated) return;
 
@@ -27,17 +27,17 @@ namespace Pixel_Drift
             {
                 try
                 {
-                    var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message);
-                    if (!data.ContainsKey("action")) return;
+                    var Data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Message);
+                    if (!Data.ContainsKey("action")) return;
 
-                    string action = data["action"].GetString();
+                    string Action = Data["action"].GetString();
 
-                    if (action == "scoreboard_data" || action == "search_result")
+                    if (Action == "scoreboard_data" || Action == "search_result")
                     {
-                        if (data.ContainsKey("data"))
+                        if (Data.ContainsKey("data"))
                         {
-                            string scoreData = data["data"].GetString();
-                            DisplayScoreBoard(scoreData);
+                            string Score_Data = Data["data"].GetString();
+                            Display_Score_Board(Score_Data);
                         }
                     }
                 }
@@ -45,80 +45,79 @@ namespace Pixel_Drift
             }));
         }
 
-        private void LoadScoreBoard()
+        private void Load_Score_Board()
         {
-            var request = new { action = "get_scoreboard", top_count = 50 };
-            ClientManager.Send_And_Forget(request);
+            var Request = new { action = "get_scoreboard", top_count = 50 };
+            Client_Manager.Send_And_Forget(Request);
         }
 
-        public void DisplayScoreBoard(string jsonData)
+        public void Display_Score_Board(string Json_Data)
         {
             try
             {
-                if (string.IsNullOrEmpty(jsonData) || jsonData == "EMPTY" || jsonData == "ERROR")
+                if (string.IsNullOrEmpty(Json_Data) || Json_Data == "EMPTY" || Json_Data == "ERROR")
                 {
                     dgv_ScoreBoard.DataSource = null;
                     return;
                 }
 
-                DataTable dt = new DataTable();
-                dt.Columns.Add("STT", typeof(int));
-                dt.Columns.Add("Tên người chơi", typeof(string));
-                dt.Columns.Add("Số trận thắng", typeof(int));
-                dt.Columns.Add("Số lần va chạm", typeof(int));
-                dt.Columns.Add("Tổng điểm", typeof(double));
-                dt.Columns.Add("Ngày chơi", typeof(string));
+                DataTable Dt = new DataTable();
+                Dt.Columns.Add("STT", typeof(int));
+                Dt.Columns.Add("Tên người chơi", typeof(string));
+                Dt.Columns.Add("Số trận thắng", typeof(int));
+                Dt.Columns.Add("Số lần va chạm", typeof(int));
+                Dt.Columns.Add("Tổng điểm", typeof(double));
+                Dt.Columns.Add("Ngày chơi", typeof(string));
 
-                string[] lines = jsonData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] Lines = Json_Data.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                int rank = 1;
-                foreach (string line in lines)
+                int Rank = 1;
+                foreach (string Line in Lines)
                 {
-                    string[] parts = line.Split('|');
-                    if (parts.Length == 6)
+                    string[] Parts = Line.Split('|');
+                    if (Parts.Length == 6)
                     {
-                        string playerName = parts[1];
-                        int winCount = int.Parse(parts[2]);
-                        int crashCount = int.Parse(parts[3]);
-                        double totalScore = double.Parse(parts[4]);
-                        string datePlayed = parts[5];
+                        string Player_Name = Parts[1];
+                        int Win_Count = int.Parse(Parts[2]);
+                        int Crash_Count = int.Parse(Parts[3]);
+                        double Total_Score = double.Parse(Parts[4]);
+                        string Date_Played = Parts[5];
 
-                        dt.Rows.Add(rank++, playerName, winCount, crashCount, totalScore, datePlayed);
+                        Dt.Rows.Add(Rank++, Player_Name, Win_Count, Crash_Count, Total_Score, Date_Played);
                     }
                 }
 
-                dgv_ScoreBoard.DataSource = dt;
+                dgv_ScoreBoard.DataSource = Dt;
 
-                // Giữ lại phần chỉnh kích thước cột ở đây vì cột được tạo động
                 if (dgv_ScoreBoard.Columns.Count > 0)
                 {
                     dgv_ScoreBoard.Columns[0].Width = 60;
                     dgv_ScoreBoard.Columns[1].Width = 200;
                 }
 
-                HighlightTopPlayers();
+                Highlight_Top_Players();
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show("Lỗi hiển thị bảng điểm: " + ex.Message);
+                MessageBox.Show("Lỗi hiển thị bảng điểm: " + Ex.Message);
             }
         }
 
         private void btn_Search_Click(object sender, EventArgs e)
         {
-            string searchText = txt_Search.Text.Trim();
-            if (string.IsNullOrEmpty(searchText))
+            string Search_Text = txt_Search.Text.Trim();
+            if (string.IsNullOrEmpty(Search_Text))
             {
-                LoadScoreBoard();
+                Load_Score_Board();
                 return;
             }
-            var request = new { action = "search_player", search_text = searchText };
-            ClientManager.Send_And_Forget(request);
+            var Request = new { action = "search_player", search_text = Search_Text };
+            Client_Manager.Send_And_Forget(Request);
         }
 
         private void btn_Refresh_Click(object sender, EventArgs e)
         {
-            LoadScoreBoard();
+            Load_Score_Board();
         }
 
         private void btn_Close_Click(object sender, EventArgs e)
@@ -135,7 +134,7 @@ namespace Pixel_Drift
             }
         }
 
-        private void HighlightTopPlayers()
+        private void Highlight_Top_Players()
         {
             if (dgv_ScoreBoard.Rows.Count > 0)
             {
@@ -161,7 +160,7 @@ namespace Pixel_Drift
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            ClientManager.OnMessageReceived -= HandleServerMessage;
+            Client_Manager.On_Message_Received -= Handle_Server_Message;
             base.OnFormClosing(e);
         }
     }

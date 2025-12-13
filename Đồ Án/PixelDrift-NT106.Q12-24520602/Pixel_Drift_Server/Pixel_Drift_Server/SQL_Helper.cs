@@ -47,37 +47,37 @@ namespace Pixel_Drift_Server
             Console.WriteLine("Database initialized successfully!");
         }
 
-        public static bool AddScore(string playerName, int winCount, int crashCount, double totalScore)
+        public static bool Add_Score(string Player_Name, int Win_Count, int Crash_Count, double Total_Score)
         {
             try
             {
-                string query = @"
+                string Query = @"
                 INSERT INTO ScoreBoard (PlayerName, WinCount, CrashCount, TotalScore) 
                 VALUES (@PlayerName, @WinCount, @CrashCount, @TotalScore)";
 
-                using (var cmd = new SQLiteCommand(query, Connection))
+                using (var Cmd = new SQLiteCommand(Query, Connection))
                 {
-                    cmd.Parameters.AddWithValue("@PlayerName", playerName);
-                    cmd.Parameters.AddWithValue("@WinCount", winCount);
-                    cmd.Parameters.AddWithValue("@CrashCount", crashCount);
-                    cmd.Parameters.AddWithValue("@TotalScore", totalScore);
-                    cmd.ExecuteNonQuery();
+                    Cmd.Parameters.AddWithValue("@PlayerName", Player_Name);
+                    Cmd.Parameters.AddWithValue("@WinCount", Win_Count);
+                    Cmd.Parameters.AddWithValue("@CrashCount", Crash_Count);
+                    Cmd.Parameters.AddWithValue("@TotalScore", Total_Score);
+                    Cmd.ExecuteNonQuery();
                 }
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                Console.WriteLine($"Error adding score: {ex.Message}");
+                Console.WriteLine($"Error adding score: {Ex.Message}");
                 return false;
             }
         }
 
-        public static string GetTopScores(int limit = 50)
+        public static string Get_Top_Scores(int Limit = 50)
         {
             try
             {
-                StringBuilder result = new StringBuilder();
-                string query = @"
+                StringBuilder Result = new StringBuilder();
+                string Query = @"
                 SELECT 
                     PlayerName, 
                     SUM(WinCount) as WinCount, 
@@ -89,42 +89,42 @@ namespace Pixel_Drift_Server
                 ORDER BY TotalScore DESC, WinCount DESC, CrashCount ASC 
                 LIMIT @Limit";
 
-                using (var cmd = new SQLiteCommand(query, Connection))
+                using (var Cmd = new SQLiteCommand(Query, Connection))
                 {
-                    cmd.Parameters.AddWithValue("@Limit", limit);
+                    Cmd.Parameters.AddWithValue("@Limit", Limit);
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (var Reader = Cmd.ExecuteReader())
                     {
-                        int rank = 1;
-                        while (reader.Read())
+                        int Rank = 1;
+                        while (Reader.Read())
                         {
-                            string playerName = reader.GetString(0);
-                            int winCount = reader.GetInt32(1);
-                            int crashCount = reader.GetInt32(2);
-                            double totalScore = reader.GetDouble(3);
-                            string datePlayed = reader.GetString(4);
+                            string Player_Name = Reader.GetString(0);
+                            int Win_Count = Reader.GetInt32(1);
+                            int Crash_Count = Reader.GetInt32(2);
+                            double Total_Score = Reader.GetDouble(3);
+                            string Date_Played = Reader.GetString(4);
 
-                            result.AppendLine($"{rank}|{playerName}|{winCount}|{crashCount}|{totalScore:F2}|{datePlayed}");
-                            rank++;
+                            Result.AppendLine($"{Rank}|{Player_Name}|{Win_Count}|{Crash_Count}|{Total_Score:F2}|{Date_Played}");
+                            Rank++;
                         }
                     }
                 }
 
-                return result.Length > 0 ? result.ToString() : "EMPTY";
+                return Result.Length > 0 ? Result.ToString() : "EMPTY";
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                Console.WriteLine($"Error getting top scores: {ex.Message}");
+                Console.WriteLine($"Error getting top scores: {Ex.Message}");
                 return "ERROR";
             }
         }
 
-        public static string SearchPlayer(string searchText)
+        public static string Search_Player(string Search_Text)
         {
             try
             {
-                StringBuilder result = new StringBuilder();
-                string query = @"
+                StringBuilder Result = new StringBuilder();
+                string Query = @"
                 SELECT 
                     PlayerName, 
                     SUM(WinCount) as WinCount, 
@@ -137,32 +137,32 @@ namespace Pixel_Drift_Server
                 ORDER BY TotalScore DESC 
                 LIMIT 50";
 
-                using (var cmd = new SQLiteCommand(query, Connection))
+                using (var Cmd = new SQLiteCommand(Query, Connection))
                 {
-                    cmd.Parameters.AddWithValue("@SearchText", $"%{searchText}%");
+                    Cmd.Parameters.AddWithValue("@SearchText", $"%{Search_Text}%");
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (var Reader = Cmd.ExecuteReader())
                     {
-                        int rank = 1;
-                        while (reader.Read())
+                        int Rank = 1;
+                        while (Reader.Read())
                         {
-                            string playerName = reader.GetString(0);
-                            int winCount = reader.GetInt32(1);
-                            int crashCount = reader.GetInt32(2);
-                            double totalScore = reader.GetDouble(3);
-                            string datePlayed = reader.GetString(4);
+                            string Player_Name = Reader.GetString(0);
+                            int Win_Count = Reader.GetInt32(1);
+                            int Crash_Count = Reader.GetInt32(2);
+                            double Total_Score = Reader.GetDouble(3);
+                            string Date_Played = Reader.GetString(4);
 
-                            result.AppendLine($"{rank}|{playerName}|{winCount}|{crashCount}|{totalScore:F2}|{datePlayed}");
-                            rank++;
+                            Result.AppendLine($"{Rank}|{Player_Name}|{Win_Count}|{Crash_Count}|{Total_Score:F2}|{Date_Played}");
+                            Rank++;
                         }
                     }
                 }
 
-                return result.Length > 0 ? result.ToString() : "EMPTY";
+                return Result.Length > 0 ? Result.ToString() : "EMPTY";
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                Console.WriteLine($"Error searching player: {ex.Message}");
+                Console.WriteLine($"Error searching player: {Ex.Message}");
                 return "ERROR";
             }
         }

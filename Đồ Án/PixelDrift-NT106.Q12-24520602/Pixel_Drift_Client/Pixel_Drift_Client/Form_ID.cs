@@ -12,7 +12,7 @@ namespace Pixel_Drift
 {
     public partial class Form_ID : Form
     {
-        public string RoomID { get; private set; }
+        public string Room_ID { get; private set; }
 
         public Form_ID()
         {
@@ -21,15 +21,15 @@ namespace Pixel_Drift
 
         private void btn_TimPhong_Click(object sender, EventArgs e)
         {
-            string input = tb_ID.Text.Trim();
+            string Input = tb_ID.Text.Trim();
 
-            if (string.IsNullOrEmpty(input))
+            if (string.IsNullOrEmpty(Input))
             {
                 MessageBox.Show("Vui lòng nhập mã phòng!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            this.RoomID = input;
+            this.Room_ID = Input;
 
             this.DialogResult = DialogResult.OK;
 

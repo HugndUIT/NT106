@@ -1,4 +1,3 @@
-using Microsoft.Office.SharePoint.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,42 +11,42 @@ namespace Pixel_Drift
 {
     public partial class Form_Thong_Tin : Form
     {
-        private string currentUsername;
+        private string Current_Username;
 
-        public Form_Thong_Tin(string username)
+        public Form_Thong_Tin(string Username)
         {
             InitializeComponent();
-            currentUsername = username;
+            Current_Username = Username;
         }
 
         private void Form_Thong_Tin_Load(object sender, EventArgs e)
         {
             try
             {
-                var request = new
+                var Request = new
                 {
                     action = "get_info",
-                    username = currentUsername
+                    username = Current_Username
                 };
 
-                string response = ClientManager.Send_And_Wait(request);
+                string Response = Client_Manager.Send_And_Wait(Request);
 
-                if (string.IsNullOrEmpty(response))
+                if (string.IsNullOrEmpty(Response))
                 {
                     MessageBox.Show("Server không phản hồi!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(response);
+                var Dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Response);
 
-                if (dict.ContainsKey("status"))
+                if (Dict.ContainsKey("status"))
                 {
-                    string status = dict["status"].GetString();
-                    if (status == "success")
+                    string Status = Dict["status"].GetString();
+                    if (Status == "success")
                     {
-                        lbl_TenDangNhap.Text = dict.ContainsKey("username") ? dict["username"].GetString() : "N/A";
-                        lbl_Email.Text = dict.ContainsKey("email") ? dict["email"].GetString() : "N/A";
-                        lbl_Birthday.Text = dict.ContainsKey("birthday") ? dict["birthday"].GetString() : "N/A";
+                        lbl_TenDangNhap.Text = Dict.ContainsKey("username") ? Dict["username"].GetString() : "N/A";
+                        lbl_Email.Text = Dict.ContainsKey("email") ? Dict["email"].GetString() : "N/A";
+                        lbl_Birthday.Text = Dict.ContainsKey("birthday") ? Dict["birthday"].GetString() : "N/A";
                     }
                     else
                     {
@@ -63,20 +62,20 @@ namespace Pixel_Drift
             {
                 MessageBox.Show("Server chưa sẵn sàng", "Lỗi Kết Nối", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            catch (JsonException ex)
+            catch (JsonException Ex)
             {
-                MessageBox.Show($"Dữ liệu từ server không hợp lệ: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Dữ liệu từ server không hợp lệ: {Ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show("Lỗi khi tải thông tin: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi tải thông tin: " + Ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnVaoGame_Click(object sender, EventArgs e)
         {
-            Lobby lobby = new Lobby(currentUsername);
-            lobby.Show();
+            Lobby Lobby_Form = new Lobby(Current_Username);
+            Lobby_Form.Show();
             this.Hide();
         }
 

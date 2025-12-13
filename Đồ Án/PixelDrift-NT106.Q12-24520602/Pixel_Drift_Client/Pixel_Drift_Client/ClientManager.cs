@@ -8,114 +8,133 @@ using System.Threading.Tasks;
 
 namespace Pixel_Drift
 {
-    public static class ClientManager
+    public static class Client_Manager
     {
-        private static TcpClient client;
-        private static StreamWriter writer;
-        private static StreamReader reader;
-        private static NetworkStream stream;
+        private static TcpClient Tcp_Client;
+        private static StreamWriter Stream_Writer;
+        private static StreamReader Stream_Reader;
+        private static NetworkStream Network_Stream;
 
-        public static event Action<string> OnMessageReceived;
-        private static bool isGlobalListening = false;
+        public static event Action<string> On_Message_Received;
+        private static bool Is_Global_Listening = false;
 
-        public static TcpClient GetClient() => client;
+        public static TcpClient Get_Client() => Tcp_Client;
 
         public static string Get_Server_IP()
         {
-            string serverIP = null;
-            using (UdpClient udpClient = new UdpClient())
+            string Server_IP = null;
+            using (UdpClient Udp_Client = new UdpClient())
             {
-                udpClient.EnableBroadcast = true;
-                var endpoint = new IPEndPoint(IPAddress.Broadcast, 2222);
-                byte[] bytes = Encoding.UTF8.GetBytes("discover_server");
+                Udp_Client.EnableBroadcast = true;
+                var Endpoint = new IPEndPoint(IPAddress.Broadcast, 2222);
+                byte[] Bytes = Encoding.UTF8.GetBytes("discover_server");
                 try
                 {
-                    udpClient.Send(bytes, bytes.Length, endpoint);
-                    var asyncResult = udpClient.BeginReceive(null, null);
-                    if (asyncResult.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(2)))
+                    Udp_Client.Send(Bytes, Bytes.Length, Endpoint);
+                    var Async_Result = Udp_Client.BeginReceive(null, null);
+                    if (Async_Result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(2)))
                     {
-                        IPEndPoint serverEp = new IPEndPoint(IPAddress.Any, 0);
-                        byte[] receivedBytes = udpClient.EndReceive(asyncResult, ref serverEp);
-                        if (Encoding.UTF8.GetString(receivedBytes) == "server_here")
-                            serverIP = serverEp.Address.ToString();
+                        IPEndPoint Server_Ep = new IPEndPoint(IPAddress.Any, 0);
+                        byte[] Received_Bytes = Udp_Client.EndReceive(Async_Result, ref Server_Ep);
+                        if (Encoding.UTF8.GetString(Received_Bytes) == "server_here")
+                            Server_IP = Server_Ep.Address.ToString();
                     }
                 }
                 catch { }
             }
-            return serverIP;
+            return Server_IP;
         }
 
-        public static bool Connect(string ip, int port)
+        public static bool Connect(string IP, int Port)
         {
             try
             {
-                if (client != null) CloseConnection();
-                client = new TcpClient();
+                if (Tcp_Client != null) Close_Connection();
+                Tcp_Client = new TcpClient();
 
-                string finalIP = string.IsNullOrEmpty(ip) ? Get_Server_IP() : ip;
-                if (string.IsNullOrEmpty(finalIP)) finalIP = "127.0.0.1";
+                string Final_IP = string.IsNullOrEmpty(IP) ? Get_Server_IP() : IP;
+                if (string.IsNullOrEmpty(Final_IP)) 
+                    Final_IP = "127.0.0.1";
 
-                client.Connect(finalIP, port);
-                stream = client.GetStream();
-                writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
-                reader = new StreamReader(stream, Encoding.UTF8);
+                Tcp_Client.Connect(Final_IP, Port);
+                Network_Stream = Tcp_Client.GetStream();
+                Stream_Writer = new StreamWriter(Network_Stream, Encoding.UTF8) { 
+                    AutoFlush = true 
+                };
+                Stream_Reader = new StreamReader(Network_Stream, Encoding.UTF8);
 
                 return true;
             }
-            catch { return false; }
+            catch 
+            { 
+                return false; 
+            }
         }
 
-        public static void StartGlobalListening()
+        public static void Start_Global_Listening()
         {
-            if (isGlobalListening) return;
-            isGlobalListening = true;
+            if (Is_Global_Listening) 
+                return;
+            Is_Global_Listening = true;
 
             Task.Run(async () =>
             {
                 try
                 {
-                    while (IsConnected)
+                    while (Is_Connected)
                     {
-                        string message = await reader.ReadLineAsync();
-                        if (message != null)
+                        string Message = await Stream_Reader.ReadLineAsync();
+                        if (Message != null)
                         {
-                            OnMessageReceived?.Invoke(message);
+                            On_Message_Received?.Invoke(Message);
                         }
                         else break;
                     }
                 }
-                catch { }
-                finally { isGlobalListening = false; }
+                catch 
+                { 
+                    // Nuốt lỗi
+                }
+                finally 
+                { 
+                    Is_Global_Listening = false; 
+                }
             });
         }
 
-        public static void Send_And_Forget(object data)
+        public static void Send_And_Forget(object Data)
         {
-            if (IsConnected && writer != null)
+            if (Is_Connected && Stream_Writer != null)
             {
-                try { writer.WriteLine(JsonSerializer.Serialize(data)); }
-                catch { CloseConnection(); }
+                try 
+                { 
+                    Stream_Writer.WriteLine(JsonSerializer.Serialize(Data)); 
+                }
+                catch 
+                { 
+                    Close_Connection(); 
+                }
             }
         }
 
-        public static string Send_And_Wait(object requestData)
+        public static string Send_And_Wait(object Request_Data)
         {
-            if (!IsConnected) throw new Exception("Mất kết nối");
+            if (!Is_Connected) throw new Exception("Mất kết nối");
             try
             {
-                writer.WriteLine(JsonSerializer.Serialize(requestData));
-                return reader.ReadLine();
+                Stream_Writer.WriteLine(JsonSerializer.Serialize(Request_Data));
+                return Stream_Reader.ReadLine();
             }
-            catch { CloseConnection(); throw; }
+            catch { Close_Connection(); throw; }
         }
 
-        public static bool IsConnected => client != null && client.Connected;
+        public static bool Is_Connected => Tcp_Client != null && Tcp_Client.Connected;
 
-        public static void CloseConnection()
+        public static void Close_Connection()
         {
-            isGlobalListening = false;
-            writer?.Close(); reader?.Close(); stream?.Close(); client?.Close();
-            client = null;
+            Is_Global_Listening = false;
+            Stream_Writer?.Close(); Stream_Reader?.Close(); Network_Stream?.Close(); Tcp_Client?.Close();
+            Tcp_Client = null;
         }
     }
 }

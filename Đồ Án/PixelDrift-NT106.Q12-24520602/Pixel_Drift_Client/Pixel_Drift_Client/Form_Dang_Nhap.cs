@@ -21,56 +21,56 @@ namespace Pixel_Drift
         }
 
         // Hàm mã hóa SHA-256
-        private string MaHoa(string password)
+        private string Ma_Hoa(string Password)
         {
-            using (SHA256 sha = SHA256.Create())
+            using (SHA256 Sha = SHA256.Create())
             {
-                byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes)
-                    builder.Append(b.ToString("x2"));
-                return builder.ToString();
+                byte[] Bytes = Sha.ComputeHash(Encoding.UTF8.GetBytes(Password));
+                StringBuilder Builder = new StringBuilder();
+                foreach (byte B in Bytes)
+                    Builder.Append(B.ToString("x2"));
+                return Builder.ToString();
             }
         }
 
         private void btn_quenmatkhau_Click(object sender, EventArgs e)
         {
-            Form_QuenMatKhau form = Application.OpenForms.OfType<Form_QuenMatKhau>().FirstOrDefault();
-            
-            if (form != null)
+            Form_Quen_Mat_Khau Form = Application.OpenForms.OfType<Form_Quen_Mat_Khau>().FirstOrDefault();
+
+            if (Form != null)
             {
-                form.Show();
+                Form.Show();
             }
             else
             {
-                form = new Form_QuenMatKhau();
-                form.Show();
+                Form = new Form_Quen_Mat_Khau();
+                Form.Show();
             }
             this.Hide();
         }
 
         private void btn_backdk_Click(object sender, EventArgs e)
         {
-            Form_Dang_Ki form = Application.OpenForms.OfType<Form_Dang_Ki>().FirstOrDefault();
-            
-            if (form != null)
+            Form_Dang_Ki Form = Application.OpenForms.OfType<Form_Dang_Ki>().FirstOrDefault();
+
+            if (Form != null)
             {
-                form.Show();
+                Form.Show();
             }
             else
             {
-                form = new Form_Dang_Ki();
-                form.Show();
+                Form = new Form_Dang_Ki();
+                Form.Show();
             }
             this.Hide();
         }
 
         private void btn_vaogame_Click(object sender, EventArgs e)
         {
-            string username = textBox1.Text.Trim();
-            string password = textBox2.Text.Trim();
+            string Username = textBox1.Text.Trim();
+            string Password = textBox2.Text.Trim();
 
-            if (username == "" || password == "")
+            if (Username == "" || Password == "")
             {
                 MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -78,50 +78,50 @@ namespace Pixel_Drift
 
             try
             {
-                if (!ClientManager.IsConnected)
+                if (!Client_Manager.Is_Connected)
                 {
-                    string ip = ClientManager.Get_Server_IP();
+                    string IP = Client_Manager.Get_Server_IP();
 
-                    if (string.IsNullOrEmpty(ip)) ip = "127.0.0.1";
+                    if (string.IsNullOrEmpty(IP)) IP = "127.0.0.1";
 
-                    if (!ClientManager.Connect(ip, 1111))
+                    if (!Client_Manager.Connect(IP, 1111))
                     {
                         MessageBox.Show("Không tìm thấy server!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                 }
 
-                string hashedPassword = MaHoa(password);
+                string Hashed_Password = Ma_Hoa(Password);
 
-                var request = new
+                var Request = new
                 {
                     action = "login",
-                    username = username,
-                    password = hashedPassword
+                    username = Username,
+                    password = Hashed_Password
                 };
 
-                string response = ClientManager.Send_And_Wait(request);
+                string Response = Client_Manager.Send_And_Wait(Request);
 
-                if (string.IsNullOrEmpty(response))
+                if (string.IsNullOrEmpty(Response))
                 {
                     MessageBox.Show("Server không phản hồi!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+                var Dict = JsonSerializer.Deserialize<Dictionary<string, string>>(Response);
 
-                if (dict.ContainsKey("status") && dict["status"] == "success")
+                if (Dict.ContainsKey("status") && Dict["status"] == "success")
                 {
                     MessageBox.Show("Đăng nhập thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    Form_Dang_Nhap.Current_Username = username;
+                    Form_Dang_Nhap.Current_Username = Username;
                     this.Hide();
-                    Form_Thong_Tin formThongTin = new Form_Thong_Tin(username);
-                    formThongTin.ShowDialog();
+                    Form_Thong_Tin Form_Thong_Tin = new Form_Thong_Tin(Username);
+                    Form_Thong_Tin.ShowDialog();
                 }
                 else
                 {
-                    string msg = dict.ContainsKey("message") ? dict["message"] : "Sai tài khoản hoặc mật khẩu!";
-                    MessageBox.Show(msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string Msg = Dict.ContainsKey("message") ? Dict["message"] : "Sai tài khoản hoặc mật khẩu!";
+                    MessageBox.Show(Msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (SocketException)
@@ -132,9 +132,9 @@ namespace Pixel_Drift
             {
                 MessageBox.Show("Dữ liệu từ server không hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi: " + Ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

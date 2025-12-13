@@ -352,7 +352,7 @@ namespace Pixel_Drift
             this.btn_ID.FillColor2 = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.btn_ID.Font = new System.Drawing.Font("Segoe UI Black", 16.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_ID.ForeColor = System.Drawing.Color.White;
-            this.btn_ID.Location = new System.Drawing.Point(804, 811);
+            this.btn_ID.Location = new System.Drawing.Point(788, 811);
             this.btn_ID.Margin = new System.Windows.Forms.Padding(3, 1, 3, 1);
             this.btn_ID.Name = "btn_ID";
             this.btn_ID.Size = new System.Drawing.Size(380, 96);
@@ -363,29 +363,29 @@ namespace Pixel_Drift
             // 
             this.lbl_P1_Status.AutoSize = true;
             this.lbl_P1_Status.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_P1_Status.Location = new System.Drawing.Point(88, 754);
+            this.lbl_P1_Status.Location = new System.Drawing.Point(208, 747);
             this.lbl_P1_Status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbl_P1_Status.Name = "lbl_P1_Status";
-            this.lbl_P1_Status.Size = new System.Drawing.Size(350, 29);
+            this.lbl_P1_Status.Size = new System.Drawing.Size(231, 29);
             this.lbl_P1_Status.TabIndex = 6;
-            this.lbl_P1_Status.Text = "                 Waiting for player 1";
+            this.lbl_P1_Status.Text = "Waiting for player 1";
             // 
             // lbl_P2_Status
             // 
             this.lbl_P2_Status.AutoSize = true;
             this.lbl_P2_Status.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_P2_Status.Location = new System.Drawing.Point(746, 756);
+            this.lbl_P2_Status.Location = new System.Drawing.Point(854, 747);
             this.lbl_P2_Status.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbl_P2_Status.Name = "lbl_P2_Status";
-            this.lbl_P2_Status.Size = new System.Drawing.Size(343, 29);
+            this.lbl_P2_Status.Size = new System.Drawing.Size(231, 29);
             this.lbl_P2_Status.TabIndex = 7;
-            this.lbl_P2_Status.Text = "                Waiting for player 2";
+            this.lbl_P2_Status.Text = "Waiting for player 2";
             // 
             // lbl_Countdown
             // 
             this.lbl_Countdown.AutoSize = true;
             this.lbl_Countdown.Font = new System.Drawing.Font("Microsoft Sans Serif", 22.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbl_Countdown.Location = new System.Drawing.Point(626, 743);
+            this.lbl_Countdown.Location = new System.Drawing.Point(625, 747);
             this.lbl_Countdown.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbl_Countdown.Name = "lbl_Countdown";
             this.lbl_Countdown.Size = new System.Drawing.Size(40, 42);
@@ -431,7 +431,6 @@ namespace Pixel_Drift
             this.Controls.Add(this.btn_ID);
             this.Controls.Add(this.lbl_Score2);
             this.Controls.Add(this.lbl_Score1);
-            this.Controls.Add(this.lbl_GameTimer);
             this.Controls.Add(this.lbl_Countdown);
             this.Controls.Add(this.lbl_P2_Status);
             this.Controls.Add(this.lbl_P1_Status);
@@ -439,6 +438,7 @@ namespace Pixel_Drift
             this.Controls.Add(this.btn_Scoreboard);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
+            this.Controls.Add(this.lbl_GameTimer);
             this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(3, 1, 3, 1);
             this.MaximizeBox = false;

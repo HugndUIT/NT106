@@ -23,158 +23,157 @@ namespace Pixel_Drift
         }
 
         // Hàm mã hoá mật khẩu bằng SHA256
-        private string MaHoa(string password)
+        private string Ma_Hoa(string Password)
         {
-            using (SHA256 sha256 = SHA256.Create())
+            using (SHA256 Sha256 = SHA256.Create())
             {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes)
-                    builder.Append(b.ToString("x2"));
-                return builder.ToString();
+                byte[] Bytes = Sha256.ComputeHash(Encoding.UTF8.GetBytes(Password));
+                StringBuilder Builder = new StringBuilder();
+                foreach (byte B in Bytes)
+                    Builder.Append(B.ToString("x2"));
+                return Builder.ToString();
             }
         }
 
         // Kiểm tra độ mạnh của mật khẩu
-        private bool KiemTraDoManhMatKhau(string password)
+        private bool Kiem_Tra_Do_Manh_Mat_Khau(string Password)
         {
-            if (password.Length < 8) return false;
-            bool coChuHoa = Regex.IsMatch(password, "[A-Z]");
-            bool coChuThuong = Regex.IsMatch(password, "[a-z]");
-            bool coSo = Regex.IsMatch(password, "[0-9]");
-            bool coKyTuDacBiet = Regex.IsMatch(password, @"[@$!%*?&#]");
-
-            return coChuHoa && coChuThuong && coSo && coKyTuDacBiet;
+            if (Password.Length < 8) return false;
+            bool Co_Chu_Hoa = Regex.IsMatch(Password, "[A-Z]");
+            bool Co_Chu_Thuong = Regex.IsMatch(Password, "[a-z]");
+            bool Co_So = Regex.IsMatch(Password, "[0-9]");
+            bool Co_Ky_Tu_Dac_Biet = Regex.IsMatch(Password, @"[@$!%*?&#]");
+            return Co_Chu_Hoa && Co_Chu_Thuong && Co_So && Co_Ky_Tu_Dac_Biet;
         }
 
         private void btn_xacnhan_Click(object sender, EventArgs e)
         {
-            string username = tb_tendangnhap.Text.Trim();
-            string password = tb_matkhau.Text.Trim();
-            string confirmpass = tb_xacnhanmk.Text.Trim();
-            string email = tb_emailsdt.Text.Trim();
-            string birthday = tb_BirthDay.Text.Trim();
+            string Username = tb_tendangnhap.Text.Trim();
+            string Password = tb_matkhau.Text.Trim();
+            string Confirm_Pass = tb_xacnhanmk.Text.Trim();
+            string Email = tb_emailsdt.Text.Trim();
+            string Birthday = tb_BirthDay.Text.Trim();
 
             // Kiểm tra dữ liệu đầu vào
-            if (username == "" || password == "" || email == "")
+            if (Username == "" || Password == "" || Email == "")
             {
                 MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            birthday = DinhDangNgay(birthday);
-            if (birthday == null)
+            Birthday = Dinh_Dang_Ngay(Birthday);
+            if (Birthday == null)
             {
                 MessageBox.Show("Nhập sai định dạng ngày sinh nhật");
                 return;
             }
 
-            bool isEmail = Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@gmail\.com$");
-            if (!isEmail)
+            bool Is_Email = Regex.IsMatch(Email, @"^[a-zA-Z0-9._%+-]+@gmail\.com$");
+            if (!Is_Email)
             {
                 MessageBox.Show("Email không hợp lệ!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (!KiemTraDoManhMatKhau(password))
+            if (!Kiem_Tra_Do_Manh_Mat_Khau(Password))
             {
                 MessageBox.Show("Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!",
                     "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (password != confirmpass)
+            if (Password != Confirm_Pass)
             {
                 MessageBox.Show("Mật khẩu không khớp!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             // Mã hóa mật khẩu
-            string hashedPassword = MaHoa(password);
+            string Hashed_Password = Ma_Hoa(Password);
 
             try
             {
-                string response = SendRegisterRequest(username, email, hashedPassword, birthday);
+                string Response = Send_Register_Request(Username, Email, Hashed_Password, Birthday);
 
-                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+                var Dict = JsonSerializer.Deserialize<Dictionary<string, string>>(Response);
 
-                if (dict.ContainsKey("status") && dict["status"] == "success")
+                if (Dict.ContainsKey("status") && Dict["status"] == "success")
                 {
-                    DialogResult result = MessageBox.Show("Đăng ký thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult Result = MessageBox.Show("Đăng ký thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    if (result == DialogResult.OK)
+                    if (Result == DialogResult.OK)
                     {
-                        Pixel_Drift.Form_Dang_Nhap formDangNhap = new Pixel_Drift.Form_Dang_Nhap();
-                        formDangNhap.Show();
+                        Form_Dang_Nhap Form_Dang_Nhap = new Form_Dang_Nhap();
+                        Form_Dang_Nhap.Show();
                         this.Close();
                     }
                 }
                 else
                 {
-                    string msg = dict.ContainsKey("message") ? dict["message"] : "Đăng ký thất bại!";
-                    MessageBox.Show(msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string Msg = Dict.ContainsKey("message") ? Dict["message"] : "Đăng ký thất bại!";
+                    MessageBox.Show(Msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (JsonException)
             {
-                MessageBox.Show("Dữ liệu phản hồi từ server không hợp lệ (không phải JSON).", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Dữ liệu phản hồi từ server không hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (SocketException)
             {
                 MessageBox.Show("Không thể kết nối đến server. Kiểm tra IP và cổng!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi: " + Ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private string DinhDangNgay(string day)
+        private string Dinh_Dang_Ngay(string Day)
         {
-            if (DateTime.TryParse(day, CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime parsedDay))
-                return parsedDay.ToString("yyyy-MM-dd");
+            if (DateTime.TryParse(Day, CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime Parsed_Day))
+                return Parsed_Day.ToString("yyyy-MM-dd");
             return null;
         }
 
-        private string SendRegisterRequest(string username, string email, string hashedPassword, string birthday)
+        private string Send_Register_Request(string Username, string Email, string Hashed_Password, string Birthday)
         {
-            if (!ClientManager.IsConnected)
+            if (!Client_Manager.Is_Connected)
             {
-                string ip = ClientManager.Get_Server_IP();
+                string IP = Client_Manager.Get_Server_IP();
 
-                if (string.IsNullOrEmpty(ip)) ip = "127.0.0.1";
+                if (string.IsNullOrEmpty(IP)) IP = "127.0.0.1";
 
-                if (!ClientManager.Connect(ip, 1111))
+                if (!Client_Manager.Connect(IP, 1111))
                 {
-                    var error = new { status = "error", message = "Không thể kết nối đến server." };
-                    return JsonSerializer.Serialize(error);
+                    var Error = new { status = "error", message = "Không thể kết nối đến server." };
+                    return JsonSerializer.Serialize(Error);
                 }
             }
 
-            var data = new
+            var Data = new
             {
                 action = "register",
-                email = email,
-                username = username,
-                password = hashedPassword,
-                birthday = birthday
+                email = Email,
+                username = Username,
+                password = Hashed_Password,
+                birthday = Birthday
             };
 
-            return ClientManager.Send_And_Wait(data);
+            return Client_Manager.Send_And_Wait(Data);
         }
 
         private void btn_backdn_Click(object sender, EventArgs e)
         {
-            Form_Dang_Nhap dn = Application.OpenForms.OfType<Form_Dang_Nhap>().FirstOrDefault();
+            Form_Dang_Nhap Dn = Application.OpenForms.OfType<Form_Dang_Nhap>().FirstOrDefault();
 
-            if (dn != null)
+            if (Dn != null)
             {
-                dn.Show();
+                Dn.Show();
             }
             else
             {
-                dn = new Form_Dang_Nhap();
-                dn.Show();
+                Dn = new Form_Dang_Nhap();
+                Dn.Show();
             }
             this.Hide();
         }

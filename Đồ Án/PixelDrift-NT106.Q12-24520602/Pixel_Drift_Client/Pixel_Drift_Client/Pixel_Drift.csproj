@@ -302,11 +302,11 @@
     <Compile Include="Form_ID.Designer.cs">
       <DependentUpon>Form_ID.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form_QuenMatKhau.cs">
+    <Compile Include="Form_Quen_Mat_Khau.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form_QuenMatKhau.Designer.cs">
-      <DependentUpon>Form_QuenMatKhau.cs</DependentUpon>
+    <Compile Include="Form_Quen_Mat_Khau.Designer.cs">
+      <DependentUpon>Form_Quen_Mat_Khau.cs</DependentUpon>
     </Compile>
     <Compile Include="Form_Scoreboard.cs">
       <SubType>Form</SubType>
@@ -360,8 +360,8 @@
     <EmbeddedResource Include="Form_ID.resx">
       <DependentUpon>Form_ID.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form_QuenMatKhau.resx">
-      <DependentUpon>Form_QuenMatKhau.cs</DependentUpon>
+    <EmbeddedResource Include="Form_Quen_Mat_Khau.resx">
+      <DependentUpon>Form_Quen_Mat_Khau.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form_Scoreboard.resx">
       <DependentUpon>Form_Scoreboard.cs</DependentUpon>
@@ -479,19 +479,19 @@
     <Content Include="buff.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="car_crash.wav">
+    <Content Include="crash.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="cho_doi.wav">
+    <Content Include="wait.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="debuff.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dem_nguoc.wav">
+    <Content Include="countdown.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="nhac_thi_dau.wav">
+    <Content Include="compete.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Resources\modaub.jpg" />

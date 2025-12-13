@@ -1,6 +1,6 @@
 ﻿namespace Pixel_Drift
 {
-    partial class Form_QuenMatKhau
+    partial class Form_Quen_Mat_Khau
     {
         /// <summary>
         /// Required designer variable.

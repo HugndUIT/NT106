@@ -35,8 +35,8 @@ namespace Pixel_Drift_Server
         private readonly object Db_Lock = new object();
 
         // Quản lý token reset pass
-        private Dictionary<string, string> PasswordResetTokens = new Dictionary<string, string>();
-        private readonly object PasswordResetLock = new object();
+        private Dictionary<string, string> Password_Reset_Tokens = new Dictionary<string, string>();
+        private readonly object Password_Reset_Lock = new object();
 
         public ServerForm()
         {
@@ -60,18 +60,18 @@ namespace Pixel_Drift_Server
         {
             Task.Run(async () =>
             {
-                using (UdpClient udpServer = new UdpClient(2222))
+                using (UdpClient UDP_Server = new UdpClient(2222))
                 {
                     while (true)
                     {
-                        var result = await udpServer.ReceiveAsync();
-                        string message = Encoding.UTF8.GetString(result.Buffer);
+                        var Result = await UDP_Server.ReceiveAsync();
+                        string Message = Encoding.UTF8.GetString(Result.Buffer);
 
-                        if (message == "discover_server")
+                        if (Message == "discover_server")
                         {
-                            byte[] response = Encoding.UTF8.GetBytes("server_here");
-                            await udpServer.SendAsync(response, response.Length, result.RemoteEndPoint);
-                            Console.WriteLine($"Đã gửi IP cho {result.RemoteEndPoint.Address}");
+                            byte[] Response = Encoding.UTF8.GetBytes("server_here");
+                            await UDP_Server.SendAsync(Response, Response.Length, Result.RemoteEndPoint);
+                            Console.WriteLine($"Đã gửi IP cho {Result.RemoteEndPoint.Address}");
                         }
                     }
                 }
@@ -208,8 +208,8 @@ namespace Pixel_Drift_Server
                                 break;
 
                             case "get_scoreboard":
-                                int TopCount = Data.ContainsKey("top_count") ? Data["top_count"].GetInt32() : 50;
-                                string Scoreboard_Data = SQL_Helper.GetTopScores(TopCount);
+                                int Top_Count = Data.ContainsKey("top_count") ? Data["top_count"].GetInt32() : 50;
+                                string Scoreboard_Data = SQL_Helper.Get_Top_Scores(Top_Count);
                                 Response = JsonSerializer.Serialize(new
                                 {
                                     action = "scoreboard_data",
@@ -219,7 +219,7 @@ namespace Pixel_Drift_Server
 
                             case "search_player":
                                 string Search_Text = Data["search_text"].GetString();
-                                string Search_Result = SQL_Helper.SearchPlayer(Search_Text);
+                                string Search_Result = SQL_Helper.Search_Player(Search_Text);
                                 Response = JsonSerializer.Serialize(new
                                 {
                                     action = "search_result",
@@ -228,12 +228,12 @@ namespace Pixel_Drift_Server
                                 break;
 
                             case "add_score":
-                                string PlayerName = Data["player_name"].GetString();
-                                int WinCount = Data["win_count"].GetInt32();
-                                int CrashCount = Data["crash_count"].GetInt32();
-                                double TotalScore = Data["total_score"].GetDouble();
+                                string Player_Name = Data["player_name"].GetString();
+                                int Win_Count = Data["win_count"].GetInt32();
+                                int Crash_Count = Data["crash_count"].GetInt32();
+                                double Total_Score = Data["total_score"].GetDouble();
 
-                                bool Success = SQL_Helper.AddScore(PlayerName, WinCount, CrashCount, TotalScore);
+                                bool Success = SQL_Helper.Add_Score(Player_Name, Win_Count, Crash_Count, Total_Score);
                                 Response = JsonSerializer.Serialize(new
                                 {
                                     action = "add_score_result",
@@ -284,113 +284,113 @@ namespace Pixel_Drift_Server
         }
 
         // Lấy email từ username
-        private string GetEmailFromUsername(string username)
+        private string Get_Email_From_Username(string Username)
         {
             lock (Db_Lock)
             {
                 try
                 {
-                    string query = "SELECT Email FROM Info_User WHERE Username=@username";
-                    using (var cmd = new SQLiteCommand(query, SQL_Helper.Connection))
+                    string Query = "SELECT Email FROM Info_User WHERE Username=@username";
+                    using (var Cmd = new SQLiteCommand(Query, SQL_Helper.Connection))
                     {
-                        cmd.Parameters.AddWithValue("@username", username);
-                        var result = cmd.ExecuteScalar();
-                        return result?.ToString();
+                        Cmd.Parameters.AddWithValue("@username", Username);
+                        var Result = Cmd.ExecuteScalar();
+                        return Result?.ToString();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception Ex)
                 {
-                    Log($"Lỗi khi lấy email từ username {username}: {ex.Message}");
+                    Log($"Lỗi khi lấy email từ username {Username}: {Ex.Message}");
                     return null;
                 }
             }
         }
 
         // Hàm xử lý đăng nhập 
-        private string Handle_Login(Dictionary<string, string> data, TcpClient client)
+        private string Handle_Login(Dictionary<string, string> Data, TcpClient Client)
         {
             try
             {
-                string username = data["username"];
-                string password = data["password"];
+                string Username = Data["username"];
+                string Password = Data["password"];
 
-                string userEmail = GetEmailFromUsername(username);
-                if (string.IsNullOrEmpty(userEmail))
+                string User_Email = Get_Email_From_Username(Username);
+                if (string.IsNullOrEmpty(User_Email))
                 {
                     return JsonSerializer.Serialize(new { status = "error", message = "Tài khoản không tồn tại" });
                 }
 
                 lock (Login_Lock)
                 {
-                    if (Active_Connections.ContainsKey(userEmail))
+                    if (Active_Connections.ContainsKey(User_Email))
                     {
                         // Kick người cũ
-                        TcpClient Old_Client = Active_Connections[userEmail];
+                        TcpClient Old_Client = Active_Connections[User_Email];
                         try
                         {
                             if (Old_Client != null && Old_Client.Connected)
                             {
                                 NetworkStream Old_Stream = Old_Client.GetStream();
-                                string kickMsg = JsonSerializer.Serialize(new { status = "force_logout", message = "Tài khoản đã bị đăng nhập nơi khác" });
-                                Send_Message(Old_Stream, kickMsg);
+                                string Kick_Msg = JsonSerializer.Serialize(new { status = "force_logout", message = "Tài khoản đã bị đăng nhập nơi khác" });
+                                Send_Message(Old_Stream, Kick_Msg);
                                 Old_Client.Close();
                             }
                         }
                         catch { }
-                        Active_Connections.Remove(userEmail);
+                        Active_Connections.Remove(User_Email);
                     }
                 }
 
-                long count = 0;
+                long Count = 0;
                 lock (Db_Lock)
                 {
-                    string query = "SELECT COUNT(*) FROM Info_User WHERE Username=@username AND Password=@password";
-                    using (var cmd = new SQLiteCommand(query, SQL_Helper.Connection))
+                    string Query = "SELECT COUNT(*) FROM Info_User WHERE Username=@username AND Password=@password";
+                    using (var Cmd = new SQLiteCommand(Query, SQL_Helper.Connection))
                     {
-                        cmd.Parameters.AddWithValue("@username", username);
-                        cmd.Parameters.AddWithValue("@password", password);
-                        count = (long)cmd.ExecuteScalar();
+                        Cmd.Parameters.AddWithValue("@username", Username);
+                        Cmd.Parameters.AddWithValue("@password", Password);
+                        Count = (long)Cmd.ExecuteScalar();
                     }
                 }
 
-                if (count > 0)
+                if (Count > 0)
                 {
                     lock (Login_Lock)
                     {
-                        Active_Connections[userEmail] = client;
+                        Active_Connections[User_Email] = Client;
                     }
-                    return JsonSerializer.Serialize(new { status = "success", message = "Login success", username = username });
+                    return JsonSerializer.Serialize(new { status = "success", message = "Login success", username = Username });
                 }
                 else
                 {
                     return JsonSerializer.Serialize(new { status = "error", message = "Sai mật khẩu" });
                 }
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                return JsonSerializer.Serialize(new { status = "error", message = ex.Message });
+                return JsonSerializer.Serialize(new { status = "error", message = Ex.Message });
             }
         }
 
         // Hàm xử lý đăng kí
-        private string Handle_Register(Dictionary<string, string> data)
+        private string Handle_Register(Dictionary<string, string> Data)
         {
             lock (Db_Lock)
             {
                 try
                 {
-                    string email = data["email"];
-                    string username = data["username"];
-                    string password = data["password"];
-                    string birthday = data["birthday"];
+                    string Email = Data["email"];
+                    string Username = Data["username"];
+                    string Password = Data["password"];
+                    string Birthday = Data["birthday"];
 
                     // Kiểm tra xem email đã tồn tại chưa
-                    string checkEmailQuery = "SELECT COUNT(*) FROM Info_User WHERE Email=@email";
-                    using (var checkCmd = new SQLiteCommand(checkEmailQuery, SQL_Helper.Connection))
+                    string Check_Email_Query = "SELECT COUNT(*) FROM Info_User WHERE Email=@email";
+                    using (var Check_Cmd = new SQLiteCommand(Check_Email_Query, SQL_Helper.Connection))
                     {
-                        checkCmd.Parameters.AddWithValue("@email", email);
-                        long emailCount = (long)checkCmd.ExecuteScalar();
-                        if (emailCount > 0)
+                        Check_Cmd.Parameters.AddWithValue("@email", Email);
+                        long Email_Count = (long)Check_Cmd.ExecuteScalar();
+                        if (Email_Count > 0)
                         {
                             return JsonSerializer.Serialize(new
                             {
@@ -401,12 +401,12 @@ namespace Pixel_Drift_Server
                     }
 
                     // Kiểm tra xem username đã tồn tại chưa
-                    string checkUserQuery = "SELECT COUNT(*) FROM Info_User WHERE Username=@username";
-                    using (var checkCmd = new SQLiteCommand(checkUserQuery, SQL_Helper.Connection))
+                    string Check_User_Query = "SELECT COUNT(*) FROM Info_User WHERE Username=@username";
+                    using (var Check_Cmd = new SQLiteCommand(Check_User_Query, SQL_Helper.Connection))
                     {
-                        checkCmd.Parameters.AddWithValue("@username", username);
-                        long userCount = (long)checkCmd.ExecuteScalar();
-                        if (userCount > 0)
+                        Check_Cmd.Parameters.AddWithValue("@username", Username);
+                        long User_Count = (long)Check_Cmd.ExecuteScalar();
+                        if (User_Count > 0)
                         {
                             return JsonSerializer.Serialize(new
                             {
@@ -417,16 +417,16 @@ namespace Pixel_Drift_Server
                     }
 
                     // Thêm user mới
-                    string insertQuery = "INSERT INTO Info_User (Username, Email, Password, Birthday) VALUES (@username, @email, @password, @birthday)";
-                    using (var insertCmd = new SQLiteCommand(insertQuery, SQL_Helper.Connection))
+                    string Insert_Query = "INSERT INTO Info_User (Username, Email, Password, Birthday) VALUES (@username, @email, @password, @birthday)";
+                    using (var Insert_Cmd = new SQLiteCommand(Insert_Query, SQL_Helper.Connection))
                     {
-                        insertCmd.Parameters.AddWithValue("@username", username);
-                        insertCmd.Parameters.AddWithValue("@email", email);
-                        insertCmd.Parameters.AddWithValue("@password", password);
-                        insertCmd.Parameters.AddWithValue("@birthday", birthday);
+                        Insert_Cmd.Parameters.AddWithValue("@username", Username);
+                        Insert_Cmd.Parameters.AddWithValue("@email", Email);
+                        Insert_Cmd.Parameters.AddWithValue("@password", Password);
+                        Insert_Cmd.Parameters.AddWithValue("@birthday", Birthday);
 
-                        int rowsAffected = insertCmd.ExecuteNonQuery();
-                        if (rowsAffected > 0)
+                        int Rows_Affected = Insert_Cmd.ExecuteNonQuery();
+                        if (Rows_Affected > 0)
                         {
                             return JsonSerializer.Serialize(new
                             {
@@ -444,81 +444,81 @@ namespace Pixel_Drift_Server
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception Ex)
                 {
                     return JsonSerializer.Serialize(new
                     {
                         status = "error",
-                        message = $"Lỗi đăng ký: {ex.Message}"
+                        message = $"Lỗi đăng ký: {Ex.Message}"
                     });
                 }
             }
         }
 
         // Hàm lấy thông tin người dùng
-        private string Handle_Get_Info(Dictionary<string, string> data)
+        private string Handle_Get_Info(Dictionary<string, string> Data)
         {
             lock (Db_Lock)
             {
                 try
                 {
-                    string query = "SELECT Username, Email, Birthday FROM Info_User WHERE Username=@u";
-                    using (var cmd = new SQLiteCommand(query, SQL_Helper.Connection))
+                    string Query = "SELECT Username, Email, Birthday FROM Info_User WHERE Username=@u";
+                    using (var Cmd = new SQLiteCommand(Query, SQL_Helper.Connection))
                     {
-                        cmd.Parameters.AddWithValue("@u", data["username"]);
-                        using (var reader = cmd.ExecuteReader())
+                        Cmd.Parameters.AddWithValue("@u", Data["username"]);
+                        using (var Reader = Cmd.ExecuteReader())
                         {
-                            if (reader.Read())
+                            if (Reader.Read())
                             {
                                 return JsonSerializer.Serialize(new
                                 {
                                     status = "success",
-                                    username = reader["Username"].ToString(),
-                                    email = reader["Email"].ToString(),
-                                    birthday = reader["Birthday"].ToString()
+                                    username = Reader["Username"].ToString(),
+                                    email = Reader["Email"].ToString(),
+                                    birthday = Reader["Birthday"].ToString()
                                 });
                             }
                         }
                     }
                     return JsonSerializer.Serialize(new { status = "error", message = "User not found" });
                 }
-                catch (Exception ex) { return JsonSerializer.Serialize(new { status = "error", message = ex.Message }); }
+                catch (Exception Ex) { return JsonSerializer.Serialize(new { status = "error", message = Ex.Message }); }
             }
         }
 
-        private string Handle_Forgot_Password(Dictionary<string, string> data)
+        private string Handle_Forgot_Password(Dictionary<string, string> Data)
         {
             lock (Db_Lock)
             {
                 try
                 {
-                    string email = data["email"];
+                    string Email = Data["email"];
 
                     // Kiểm tra email có tồn tại không
-                    string query = "SELECT Username, Password FROM Info_User WHERE Email=@email";
-                    using (var cmd = new SQLiteCommand(query, SQL_Helper.Connection))
+                    string Query = "SELECT Username, Password FROM Info_User WHERE Email=@email";
+                    using (var Cmd = new SQLiteCommand(Query, SQL_Helper.Connection))
                     {
-                        cmd.Parameters.AddWithValue("@email", email);
+                        Cmd.Parameters.AddWithValue("@email", Email);
 
-                        using (var reader = cmd.ExecuteReader())
+                        using (var Reader = Cmd.ExecuteReader())
                         {
-                            if (reader.Read())
+                            if (Reader.Read())
                             {
-                                string username = reader["Username"].ToString();
-                                string password = reader["Password"].ToString();
+                                string Username = Reader["Username"].ToString();
+                                string Password = Reader["Password"].ToString();
 
                                 // Tạo token reset password
-                                string token = GenerateResetToken();
-                                lock (PasswordResetLock)
+                                string Token = Generate_Reset_Token();
+                                lock (Password_Reset_Lock)
                                 {
-                                    PasswordResetTokens[email] = token;
+                                    Password_Reset_Tokens[Email] = Token;
                                 }
 
                                 // Gửi email với token
-                                bool sent = Send_Email(email, "Password Reset",
-                                    $"Hello {username}, your password reset token is: {token}");
+                                bool Sent = Send_Email(Email, "Password Reset",
+                                    $"Hello {Username}, your password reset token is: {Token}");
 
-                                if (sent)
+                                if (Sent)
                                 {
                                     return JsonSerializer.Serialize(new
                                     {
@@ -546,30 +546,30 @@ namespace Pixel_Drift_Server
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception Ex)
                 {
                     return JsonSerializer.Serialize(new
                     {
                         status = "error",
-                        message = $"Lỗi quên mật khẩu: {ex.Message}"
+                        message = $"Lỗi quên mật khẩu: {Ex.Message}"
                     });
                 }
             }
         }
 
         // Hàm xử lý đổi mật khẩu
-        private string Handle_Change_Password(Dictionary<string, string> data)
+        private string Handle_Change_Password(Dictionary<string, string> Data)
         {
             try
             {
-                string email = data["email"];
-                string token = data["token"];
-                string newPassword = data["new_password"];
+                string Email = Data["email"];
+                string Token = Data["token"];
+                string New_Password = Data["new_password"];
 
                 // Kiểm tra token
-                lock (PasswordResetLock)
+                lock (Password_Reset_Lock)
                 {
-                    if (!PasswordResetTokens.ContainsKey(email) || PasswordResetTokens[email] != token)
+                    if (!Password_Reset_Tokens.ContainsKey(Email) || Password_Reset_Tokens[Email] != Token)
                     {
                         return JsonSerializer.Serialize(new
                         {
@@ -579,18 +579,18 @@ namespace Pixel_Drift_Server
                     }
 
                     // Xóa token sau khi sử dụng
-                    PasswordResetTokens.Remove(email);
+                    Password_Reset_Tokens.Remove(Email);
                 }
 
                 // Cập nhật mật khẩu
-                string updateQuery = "UPDATE Info_User SET Password=@password WHERE Email=@email";
-                using (var updateCmd = new SQLiteCommand(updateQuery, SQL_Helper.Connection))
+                string Update_Query = "UPDATE Info_User SET Password=@password WHERE Email=@email";
+                using (var Update_Cmd = new SQLiteCommand(Update_Query, SQL_Helper.Connection))
                 {
-                    updateCmd.Parameters.AddWithValue("@password", newPassword);
-                    updateCmd.Parameters.AddWithValue("@email", email);
+                    Update_Cmd.Parameters.AddWithValue("@password", New_Password);
+                    Update_Cmd.Parameters.AddWithValue("@email", Email);
 
-                    int rowsAffected = updateCmd.ExecuteNonQuery();
-                    if (rowsAffected > 0)
+                    int Rows_Affected = Update_Cmd.ExecuteNonQuery();
+                    if (Rows_Affected > 0)
                     {
                         return JsonSerializer.Serialize(new
                         {
@@ -606,17 +606,17 @@ namespace Pixel_Drift_Server
                     message = "Không thể đổi mật khẩu"
                 });
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
                 return JsonSerializer.Serialize(new
                 {
                     status = "error",
-                    message = $"Lỗi đổi mật khẩu: {ex.Message}"
+                    message = $"Lỗi đổi mật khẩu: {Ex.Message}"
                 });
             }
         }
 
-        private string GenerateRoomID()
+        private string Generate_Room_ID()
         {
             return new Random().Next(100000, 999999).ToString();
         }
@@ -625,13 +625,13 @@ namespace Pixel_Drift_Server
         private string Handle_Create_Room(TcpClient Client, Dictionary<string, JsonElement> Data)
         {
             string Username = Data.ContainsKey("username") ? Data["username"].GetString() : "Unknown";
-            string ID_Room = GenerateRoomID();
+            string ID_Room = Generate_Room_ID();
 
             lock (Room_Lock)
             {
                 while (Rooms.ContainsKey(ID_Room))
                 {
-                    ID_Room = GenerateRoomID();
+                    ID_Room = Generate_Room_ID();
                 }
 
                 Game_Room New_Room = new Game_Room(ID_Room);
@@ -689,7 +689,7 @@ namespace Pixel_Drift_Server
             }
         }
 
-        private void Handle_Game_Action(TcpClient Client, string action, Dictionary<string, JsonElement> Data)
+        private void Handle_Game_Action(TcpClient Client, string Action, Dictionary<string, JsonElement> Data)
         {
             string ID_Room = null;
 
@@ -701,15 +701,15 @@ namespace Pixel_Drift_Server
 
             if (ID_Room != null && Rooms.ContainsKey(ID_Room))
             {
-                Rooms[ID_Room].Handle_Input(Client, action, Data);
+                Rooms[ID_Room].Handle_Input(Client, Action, Data);
 
-                if (action == "leave_room")
+                if (Action == "leave_room")
                 {
                     lock (Room_Lock)
                     {
                         Players.Remove(Client);
 
-                        if (Rooms.ContainsKey(ID_Room) && Rooms[ID_Room].IsEmpty())
+                        if (Rooms.ContainsKey(ID_Room) && Rooms[ID_Room].Is_Empty())
                         {
                             Rooms.Remove(ID_Room);
                             Log($"Phòng {ID_Room} đã đóng do không còn người chơi.");
@@ -731,7 +731,7 @@ namespace Pixel_Drift_Server
                     {
                         Rooms[ID_Room].Remove_Player(Client);
 
-                        if (Rooms[ID_Room].IsEmpty())
+                        if (Rooms[ID_Room].Is_Empty())
                         {
                             Rooms.Remove(ID_Room);
                             Log($"Phòng {ID_Room} đã đóng do không còn người chơi.");
@@ -745,11 +745,11 @@ namespace Pixel_Drift_Server
             lock (Login_Lock)
             {
                 string Email_To_Remove = null;
-                foreach (var kvp in Active_Connections)
+                foreach (var Kvp in Active_Connections)
                 {
-                    if (kvp.Value == Client)
+                    if (Kvp.Value == Client)
                     {
-                        Email_To_Remove = kvp.Key;
+                        Email_To_Remove = Kvp.Key;
                         break;
                     }
                 }
@@ -764,7 +764,7 @@ namespace Pixel_Drift_Server
             Log($"Client ngắt kết nối.");
         }
 
-        private string GenerateResetToken()
+        private string Generate_Reset_Token()
         {
             return Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
         }

@@ -8,19 +8,19 @@ namespace Pixel_Drift
 {
     public partial class Lobby : Form
     {
-        private string MyUsername;
+        private string My_Username;
 
-        public Lobby(string username)
+        public Lobby(string Username)
         {
             InitializeComponent();
-            MyUsername = username;
+            My_Username = Username;
 
-            ClientManager.StartGlobalListening();
+            Client_Manager.Start_Global_Listening();
 
-            ClientManager.OnMessageReceived += HandleServerMessage;
+            Client_Manager.On_Message_Received += Handle_Server_Message;
         }
 
-        private void HandleServerMessage(string message)
+        private void Handle_Server_Message(string Message)
         {
             if (this.Disposing || this.IsDisposed || !this.IsHandleCreated) return;
 
@@ -28,37 +28,37 @@ namespace Pixel_Drift
             {
                 try
                 {
-                    var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(message);
-                    string status = "";
-                    if (data.ContainsKey("status")) status = data["status"].GetString();
-                    else if (data.ContainsKey("action")) status = data["action"].GetString();
+                    var Data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Message);
+                    string Status = "";
+                    if (Data.ContainsKey("status")) Status = Data["status"].GetString();
+                    else if (Data.ContainsKey("action")) Status = Data["action"].GetString();
 
-                    if (status == "create_room_success" || status == "join_room_success")
+                    if (Status == "create_room_success" || Status == "join_room_success")
                     {
-                        string roomID = data["room_id"].GetString();
-                        int playerNum = data["player_number"].GetInt32();
+                        string Room_ID = Data["room_id"].GetString();
+                        int Player_Num = Data["player_number"].GetInt32();
 
-                        Game_Window gameForm = new Game_Window(MyUsername, playerNum, roomID);
+                        Game_Window Game_Form = new Game_Window(My_Username, Player_Num, Room_ID);
 
-                        gameForm.FormClosed += (s, args) =>
+                        Game_Form.FormClosed += (s, args) =>
                         {
                             if (!this.IsDisposed) this.Show();
                         };
 
                         this.Hide();
-                        gameForm.Show();
+                        Game_Form.Show();
                     }
-                    else if (status == "force_logout")
+                    else if (Status == "force_logout")
                     {
-                        string msg = data.ContainsKey("message") ? data["message"].GetString() : "Tài khoản đã đăng nhập nơi khác!";
+                        string Msg = Data.ContainsKey("message") ? Data["message"].GetString() : "Tài khoản đã đăng nhập nơi khác!";
 
-                        MessageBox.Show(msg, "Cảnh báo Đăng Nhập", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(Msg, "Cảnh báo Đăng Nhập", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
                         Application.Exit();
                     }
-                    else if (status == "error")
+                    else if (Status == "error")
                     {
-                        MessageBox.Show(data["message"].GetString(), "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(Data["message"].GetString(), "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 catch { }
@@ -67,31 +67,31 @@ namespace Pixel_Drift
 
         private void btn_CreateRoom_Click(object sender, EventArgs e)
         {
-            ClientManager.Send_And_Forget(new { action = "create_room", username = MyUsername });
+            Client_Manager.Send_And_Forget(new { action = "create_room", username = My_Username });
         }
 
         private void btn_JoinRoom_Click(object sender, EventArgs e)
         {
-            using (Form_ID inputForm = new Form_ID())
+            using (Form_ID Input_Form = new Form_ID())
             {
-                if (inputForm.ShowDialog() == DialogResult.OK)
+                if (Input_Form.ShowDialog() == DialogResult.OK)
                 {
-                    ClientManager.Send_And_Forget(new { action = "join_room", room_id = inputForm.RoomID, username = MyUsername });
+                    Client_Manager.Send_And_Forget(new { action = "join_room", room_id = Input_Form.Room_ID, username = My_Username });
                 }
             }
         }
 
         private void Lobby_FormClosed(object sender, FormClosedEventArgs e)
         {
-            ClientManager.OnMessageReceived -= HandleServerMessage; 
+            Client_Manager.On_Message_Received -= Handle_Server_Message;
             Application.Exit();
         }
 
         private void btn_Scoreboard_Click(object sender, EventArgs e)
         {
-            var sb = Application.OpenForms.OfType<Form_ScoreBoard>().FirstOrDefault();
-            if (sb != null) sb.Show();
-            else { new Form_ScoreBoard(ClientManager.GetClient()).Show(); }
+            var Sb = Application.OpenForms.OfType<Form_ScoreBoard>().FirstOrDefault();
+            if (Sb != null) Sb.Show();
+            else { new Form_ScoreBoard(Client_Manager.Get_Client()).Show(); }
         }
     }
 }

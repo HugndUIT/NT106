@@ -18,8 +18,8 @@ namespace Pixel_Drift_Server
         private readonly object Player_Lock = new object();
 
         // Cấu hình logic mạng
-        private const int Logic_FPS = 60;       
-        private const int Network_FPS = 60;     
+        private const int Logic_FPS = 60;
+        private const int Network_FPS = 60;
         private DateTime Last_Network_Send = DateTime.Now;
 
         // Timer đếm ngược
@@ -51,40 +51,40 @@ namespace Pixel_Drift_Server
             Reusable_Game_State["action"] = "update_game_state";
         }
 
-        private string CleanUsername(string username)
+        private string Clean_Username(string Username)
         {
-            if (string.IsNullOrEmpty(username))
-                return username;
+            if (string.IsNullOrEmpty(Username))
+                return Username;
 
-            int lastParenIndex = username.LastIndexOf('(');
-            if (lastParenIndex > 0)
+            int Last_Paren_Index = Username.LastIndexOf('(');
+            if (Last_Paren_Index > 0)
             {
-                return username.Substring(0, lastParenIndex).Trim();
+                return Username.Substring(0, Last_Paren_Index).Trim();
             }
 
-            return username.Trim();
+            return Username.Trim();
         }
 
-        public bool IsEmpty()
+        public bool Is_Empty()
         {
             return Player_1 == null && Player_2 == null;
         }
 
-        public int Add_Player(TcpClient client, string username)
+        public int Add_Player(TcpClient Client, string Username)
         {
             lock (Player_Lock)
             {
-                string cleanUsername = CleanUsername(username);
+                string Clean_Name = Clean_Username(Username);
 
                 if (Player_1 == null)
                 {
-                    Player_1 = new Game_Player { Client = client, Stream = client.GetStream(), Username = cleanUsername, Player_ID = 1 };
+                    Player_1 = new Game_Player { Client = Client, Stream = Client.GetStream(), Username = Clean_Name, Player_ID = 1 };
                     Broadcast_Ready_Status();
                     return 1;
                 }
                 else if (Player_2 == null)
                 {
-                    Player_2 = new Game_Player { Client = client, Stream = client.GetStream(), Username = cleanUsername, Player_ID = 2 };
+                    Player_2 = new Game_Player { Client = Client, Stream = Client.GetStream(), Username = Clean_Name, Player_ID = 2 };
                     Broadcast_Ready_Status();
                     return 2;
                 }
@@ -92,85 +92,85 @@ namespace Pixel_Drift_Server
             }
         }
 
-        public void Remove_Player(TcpClient client)
+        public void Remove_Player(TcpClient Client)
         {
             lock (Player_Lock)
             {
-                string leftUser = "Unknown";
-                Game_Player remainingPlayer = null; 
+                string Left_User = "Unknown";
+                Game_Player Remaining_Player = null;
 
-                if (Player_1 != null && Player_1.Client == client)
+                if (Player_1 != null && Player_1.Client == Client)
                 {
-                    leftUser = Player_1.Username;
+                    Left_User = Player_1.Username;
                     Player_1 = null;
-                    remainingPlayer = Player_2; 
+                    Remaining_Player = Player_2;
                 }
-                else if (Player_2 != null && Player_2.Client == client)
+                else if (Player_2 != null && Player_2.Client == Client)
                 {
-                    leftUser = Player_2.Username;
+                    Left_User = Player_2.Username;
                     Player_2 = null;
-                    remainingPlayer = Player_1; 
+                    Remaining_Player = Player_1;
                 }
 
-                StopGame();
+                Stop_Game();
 
-                var disconnectMsg = new
+                var Disconnect_Msg = new
                 {
                     action = "player_disconnected",
-                    name = leftUser,
-                    target_action = (remainingPlayer != null) ? "opponent_left" : null
+                    name = Left_User,
+                    target_action = (Remaining_Player != null) ? "opponent_left" : null
                 };
 
-                Broadcast(JsonSerializer.Serialize(disconnectMsg));
+                Broadcast(JsonSerializer.Serialize(Disconnect_Msg));
                 Broadcast_Ready_Status();
             }
         }
 
-        public void Handle_Input(TcpClient client, string action, Dictionary<string, JsonElement> data)
+        public void Handle_Input(TcpClient Client, string Action, Dictionary<string, JsonElement> Data)
         {
-            int playerID = 0;
+            int Player_ID = 0;
 
-            if (Player_1 != null && Player_1.Client == client) 
-                playerID = 1;
-            else if (Player_2 != null && Player_2.Client == client) 
-                playerID = 2;
+            if (Player_1 != null && Player_1.Client == Client)
+                Player_ID = 1;
+            else if (Player_2 != null && Player_2.Client == Client)
+                Player_ID = 2;
 
-            if (playerID == 0) return;
+            if (Player_ID == 0) return;
 
-            switch (action)
+            switch (Action)
             {
                 case "set_ready":
-                    bool ready = data["ready_status"].GetString() == "true";
+                    bool Ready = Data["ready_status"].GetString() == "true";
                     lock (Player_Lock)
                     {
-                        if (playerID == 1) Player_1.Is_Ready = ready;
-                        else Player_2.Is_Ready = ready;
+                        if (Player_ID == 1) Player_1.Is_Ready = Ready;
+                        else Player_2.Is_Ready = Ready;
                     }
                     Broadcast_Ready_Status();
                     Check_Start_Countdown();
                     break;
 
                 case "move":
-                    string direction = data["direction"].GetString();
-                    bool isPressed = data["state"].GetString() == "down";
+                    string Direction = Data["direction"].GetString();
+                    bool Is_Pressed = Data["state"].GetString() == "down";
 
                     lock (Player_Lock)
                     {
-                        if (playerID == 1)
+                        if (Player_ID == 1)
                         {
-                            if (direction == "left") P1_Left = isPressed;
-                            else if (direction == "right") P1_Right = isPressed;
+                            if (Direction == "left") P1_Left = Is_Pressed;
+                            else if (Direction == "right") P1_Right = Is_Pressed;
                         }
                         else
                         {
-                            if (direction == "left") P2_Left = isPressed;
-                            else if (direction == "right") P2_Right = isPressed;
+                            if (Direction == "left") P2_Left = Is_Pressed;
+                            else if (Direction == "right") P2_Right = Is_Pressed;
                         }
                     }
                     break;
 
                 case "leave_room":
-                    Remove_Player(client);
+                    Remove_Player(Client);
                     break;
             }
         }
@@ -180,25 +180,25 @@ namespace Pixel_Drift_Server
             if (Stream == null || !Stream.CanWrite) return;
             try
             {
-                byte[] buffer = Encoding.UTF8.GetBytes(Message + "\n");
-                await Stream.WriteAsync(buffer, 0, buffer.Length);
+                byte[] Buffer = Encoding.UTF8.GetBytes(Message + "\n");
+                await Stream.WriteAsync(Buffer, 0, Buffer.Length);
             }
             catch
             {
-                
+
             }
         }
 
         private void Broadcast(string Message)
         {
-            NetworkStream s1 = null, s2 = null;
+            NetworkStream S1 = null, S2 = null;
             lock (Player_Lock)
             {
-                if (Player_1 != null) s1 = Player_1.Stream;
-                if (Player_2 != null) s2 = Player_2.Stream;
+                if (Player_1 != null) S1 = Player_1.Stream;
+                if (Player_2 != null) S2 = Player_2.Stream;
             }
-            if (s1 != null) Send_Message(s1, Message);
-            if (s2 != null) Send_Message(s2, Message);
+            if (S1 != null) Send_Message(S1, Message);
+            if (S2 != null) Send_Message(S2, Message);
         }
 
         private void Broadcast_Ready_Status()
@@ -217,10 +217,10 @@ namespace Pixel_Drift_Server
             }
         }
 
-        private void Send_Sound(Game_Player player, string soundName)
+        private void Send_Sound(Game_Player Player, string Sound_Name)
         {
-            if (player != null && player.Stream != null)
-                Send_Message(player.Stream, JsonSerializer.Serialize(new { action = "play_sound", sound = soundName }));
+            if (Player != null && Player.Stream != null)
+                Send_Message(Player.Stream, JsonSerializer.Serialize(new { action = "play_sound", sound = Sound_Name }));
         }
 
         private void Check_Start_Countdown()
@@ -264,7 +264,7 @@ namespace Pixel_Drift_Server
         {
             Game_Time_Remaining = 60;
             DateTime Last_Second_Tick = DateTime.Now;
-            int Loop_Delay = 1000 / Logic_FPS; 
+            int Loop_Delay = 1000 / Logic_FPS;
 
             while (Is_Game_Running && Game_Time_Remaining > 0)
             {
@@ -277,11 +277,11 @@ namespace Pixel_Drift_Server
                     P1_Score += P1_Speed;
                     P2_Score += P2_Speed;
 
-                    var timeData = new { action = "update_time", time = Game_Time_Remaining };
-                    var scoreData = new { action = "update_score", p1_score = P1_Score, p2_score = P2_Score };
+                    var Time_Data = new { action = "update_time", time = Game_Time_Remaining };
+                    var Score_Data = new { action = "update_score", p1_score = P1_Score, p2_score = P2_Score };
 
-                    Broadcast(JsonSerializer.Serialize(timeData));
-                    Broadcast(JsonSerializer.Serialize(scoreData));
+                    Broadcast(JsonSerializer.Serialize(Time_Data));
+                    Broadcast(JsonSerializer.Serialize(Score_Data));
                 }
 
                 if ((DateTime.Now - Last_Network_Send).TotalMilliseconds >= (1000 / Network_FPS))
@@ -293,23 +293,23 @@ namespace Pixel_Drift_Server
                 await Task.Delay(Loop_Delay);
             }
 
-            if (Is_Game_Running) 
+            if (Is_Game_Running)
             {
-                EndGame();
+                End_Game();
             }
         }
 
-        private void StopGame()
+        private void Stop_Game()
         {
             Is_Game_Running = false;
             Countdown_Timer?.Dispose();
             Countdown_Timer = null;
         }
 
-        private void EndGame()
+        private void End_Game()
         {
             Is_Game_Running = false;
-            SaveGameScores();
+            Save_Game_Scores();
             Broadcast(JsonSerializer.Serialize(new { action = "game_over" }));
             Log_Action?.Invoke($"Phòng {Room_ID}: Game kết thúc.");
 
@@ -327,22 +327,22 @@ namespace Pixel_Drift_Server
             {
                 if (Player_1 != null)
                 {
-                    Point p = Game_Objects["ptb_player1"];
-                    if (P1_Left && p.X > P1_Min_X) 
-                        p.X -= Player_Move_Speed;
-                    if (P1_Right && p.X < P1_Max_X - Object_Sizes["ptb_player1"].Width) 
-                        p.X += Player_Move_Speed;
-                    Game_Objects["ptb_player1"] = p;
+                    Point P = Game_Objects["ptb_player1"];
+                    if (P1_Left && P.X > P1_Min_X)
+                        P.X -= Player_Move_Speed;
+                    if (P1_Right && P.X < P1_Max_X - Object_Sizes["ptb_player1"].Width)
+                        P.X += Player_Move_Speed;
+                    Game_Objects["ptb_player1"] = P;
                 }
 
                 if (Player_2 != null)
                 {
-                    Point p = Game_Objects["ptb_player2"];
-                    if (P2_Left && p.X > P2_Min_X) 
-                        p.X -= Player_Move_Speed;
-                    if (P2_Right && p.X < P2_Max_X - Object_Sizes["ptb_player2"].Width) 
-                        p.X += Player_Move_Speed;
-                    Game_Objects["ptb_player2"] = p;
+                    Point P = Game_Objects["ptb_player2"];
+                    if (P2_Left && P.X > P2_Min_X)
+                        P.X -= Player_Move_Speed;
+                    if (P2_Right && P.X < P2_Max_X - Object_Sizes["ptb_player2"].Width)
+                        P.X += Player_Move_Speed;
+                    Game_Objects["ptb_player2"] = P;
                 }
 
                 Move_Objects_Logic();
@@ -392,9 +392,9 @@ namespace Pixel_Drift_Server
         {
             lock (Player_Lock)
             {
-                foreach (var kvp in Game_Objects)
+                foreach (var Kvp in Game_Objects)
                 {
-                    Reusable_Game_State[kvp.Key] = kvp.Value;
+                    Reusable_Game_State[Kvp.Key] = Kvp.Value;
                 }
             }
             Broadcast(JsonSerializer.Serialize(Reusable_Game_State));
@@ -456,12 +456,12 @@ namespace Pixel_Drift_Server
             Size Current_Size = Object_Sizes.ContainsKey(Name) ? Object_Sizes[Name] : new Size(30, 30);
             int Safe_Max_X = Max_X - Current_Size.Width - 60;
 
-            if (Safe_Max_X <= Min_X) 
+            if (Safe_Max_X <= Min_X)
                 Safe_Max_X = Min_X + 1;
 
-            int Max_Retries = 20; 
-            int Attempt = 0; 
-            Point New_Pos = new Point(0, 0); 
+            int Max_Retries = 20;
+            int Attempt = 0;
+            Point New_Pos = new Point(0, 0);
             bool Overlap;
 
             do
@@ -473,26 +473,26 @@ namespace Pixel_Drift_Server
                 Rectangle New_Rect = new Rectangle(New_Pos, Current_Size); New_Rect.Inflate(30, 150);
                 foreach (var Key in Game_Objects.Keys)
                 {
-                    if (Key == Name || Key.Contains("roadtrack") || Key.Contains("player")) 
+                    if (Key == Name || Key.Contains("roadtrack") || Key.Contains("player"))
                         continue;
                     if (Object_Sizes.ContainsKey(Key))
                     {
                         Rectangle Existing_Rect = new Rectangle(Game_Objects[Key], Object_Sizes[Key]);
-                        if (New_Rect.IntersectsWith(Existing_Rect)) 
-                        { 
-                            Overlap = true; break; 
+                        if (New_Rect.IntersectsWith(Existing_Rect))
+                        {
+                            Overlap = true; break;
                         }
                     }
                 }
                 Attempt++;
             } while (Overlap && Attempt < Max_Retries);
-            
-            if (Overlap) 
+
+            if (Overlap)
                 New_Pos.Y -= 300;
-            
-            if (Game_Objects.ContainsKey(Name)) 
+
+            if (Game_Objects.ContainsKey(Name))
                 Game_Objects[Name] = New_Pos;
-            
+
             return New_Pos;
         }
 
@@ -504,33 +504,33 @@ namespace Pixel_Drift_Server
             return Rect_Player.IntersectsWith(Rect_Obj);
         }
 
-        private void SaveGameScores()
+        private void Save_Game_Scores()
         {
             try
             {
                 lock (Player_Lock)
                 {
-                    int p1WinCount = P1_Score > P2_Score ? 1 : 0;
-                    int p2WinCount = P2_Score > P1_Score ? 1 : 0;
-                    int p1CrashCount = Math.Max(0, (100 - P1_Speed) / 10);
-                    int p2CrashCount = Math.Max(0, (100 - P2_Speed) / 10);
+                    int P1_Win_Count = P1_Score > P2_Score ? 1 : 0;
+                    int P2_Win_Count = P2_Score > P1_Score ? 1 : 0;
+                    int P1_Crash_Count = Math.Max(0, (100 - P1_Speed) / 10);
+                    int P2_Crash_Count = Math.Max(0, (100 - P2_Speed) / 10);
 
                     if (Player_1 != null && !string.IsNullOrEmpty(Player_1.Username))
                     {
-                        string cleanUsername = CleanUsername(Player_1.Username);
-                        SQL_Helper.AddScore(cleanUsername, p1WinCount, p1CrashCount, P1_Score);
+                        string Clean_Name = Clean_Username(Player_1.Username);
+                        SQL_Helper.Add_Score(Clean_Name, P1_Win_Count, P1_Crash_Count, P1_Score);
                     }
 
                     if (Player_2 != null && !string.IsNullOrEmpty(Player_2.Username))
                     {
-                        string cleanUsername = CleanUsername(Player_2.Username);
-                        SQL_Helper.AddScore(cleanUsername, p2WinCount, p2CrashCount, P2_Score);
+                        string Clean_Name = Clean_Username(Player_2.Username);
+                        SQL_Helper.Add_Score(Clean_Name, P2_Win_Count, P2_Crash_Count, P2_Score);
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                Log_Action?.Invoke($"Lỗi lưu điểm: {ex.Message}");
+                Log_Action?.Invoke($"Lỗi lưu điểm: {Ex.Message}");
             }
         }
     }

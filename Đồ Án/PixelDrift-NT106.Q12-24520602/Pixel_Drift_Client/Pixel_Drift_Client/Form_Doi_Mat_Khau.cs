@@ -11,36 +11,35 @@ namespace Pixel_Drift
 {
     public partial class Form_Doi_Mat_Khau : Form
     {
-        private string userEmail;
+        private string User_Email;
 
-        public Form_Doi_Mat_Khau(string email)
+        public Form_Doi_Mat_Khau(string Email)
         {
             InitializeComponent();
-            userEmail = email;
+            User_Email = Email;
         }
-
 
         private void btn_doimk_Click(object sender, EventArgs e)
         {
-            string token = txt_mkcu.Text.Trim();
-            string newPass = txt_mkmoi.Text.Trim();
-            string confirm = txt_xacnhanmk.Text.Trim();
+            string Token = txt_mkcu.Text.Trim();
+            string New_Pass = txt_mkmoi.Text.Trim();
+            string Confirm = txt_xacnhanmk.Text.Trim();
 
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(newPass) || string.IsNullOrEmpty(confirm))
+            if (string.IsNullOrEmpty(Token) || string.IsNullOrEmpty(New_Pass) || string.IsNullOrEmpty(Confirm))
             {
                 MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Cảnh báo",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (newPass != confirm)
+            if (New_Pass != Confirm)
             {
                 MessageBox.Show("Mật khẩu xác nhận không trùng khớp!", "Lỗi",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            if (!ClientManager.IsConnected)
+            if (!Client_Manager.Is_Connected)
             {
                 MessageBox.Show("Mất kết nối đến server! Vui lòng thử lại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -49,47 +48,47 @@ namespace Pixel_Drift
             try
             {
                 // Mã hóa mật khẩu mới trước khi gửi 
-                string encryptedNewPassword = MaHoa(newPass);
+                string Encrypted_New_Password = Ma_Hoa(New_Pass);
 
-                var request = new
+                var Request = new
                 {
                     action = "change_password",
-                    email = userEmail,
-                    token = token,
-                    new_password = encryptedNewPassword // Gửi mật khẩu đã mã hóa
+                    email = User_Email,
+                    token = Token,
+                    new_password = Encrypted_New_Password
                 };
 
-                string response = ClientManager.Send_And_Wait(request);
+                string Response = Client_Manager.Send_And_Wait(Request);
 
-                if (response == null)
+                if (Response == null)
                 {
                     throw new SocketException();
                 }
 
-                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
+                var Dict = JsonSerializer.Deserialize<Dictionary<string, string>>(Response);
 
-                if (dict.ContainsKey("status") && dict["status"] == "success")
+                if (Dict.ContainsKey("status") && Dict["status"] == "success")
                 {
-                    MessageBox.Show(dict["message"], "Thành công",
+                    MessageBox.Show(Dict["message"], "Thành công",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    Form_Dang_Nhap existingLogin = Application.OpenForms.OfType<Form_Dang_Nhap>().FirstOrDefault();
+                    Form_Dang_Nhap Existing_Login = Application.OpenForms.OfType<Form_Dang_Nhap>().FirstOrDefault();
 
-                    if (existingLogin != null)
+                    if (Existing_Login != null)
                     {
-                        existingLogin.Show();
+                        Existing_Login.Show();
                     }
                     else
                     {
-                        Form_Dang_Nhap dn = new Form_Dang_Nhap();
-                        dn.Show();
+                        Form_Dang_Nhap Dn = new Form_Dang_Nhap();
+                        Dn.Show();
                     }
                     this.Hide();
                 }
                 else
                 {
-                    string msg = dict.ContainsKey("message") ? dict["message"] : "Đổi mật khẩu thất bại!";
-                    MessageBox.Show(msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    string Msg = Dict.ContainsKey("message") ? Dict["message"] : "Đổi mật khẩu thất bại!";
+                    MessageBox.Show(Msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (SocketException)
@@ -100,30 +99,30 @@ namespace Pixel_Drift
             {
                 MessageBox.Show("Phản hồi từ server không hợp lệ.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            catch (Exception ex)
+            catch (Exception Ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi: " + Ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         // Hàm mã hóa SHA-256
-        private string MaHoa(string password)
+        private string Ma_Hoa(string Password)
         {
-            using (SHA256 sha = SHA256.Create())
+            using (SHA256 Sha = SHA256.Create())
             {
-                byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes)
-                    builder.Append(b.ToString("x2"));
-                return builder.ToString();
+                byte[] Bytes = Sha.ComputeHash(Encoding.UTF8.GetBytes(Password));
+                StringBuilder Builder = new StringBuilder();
+                foreach (byte B in Bytes)
+                    Builder.Append(B.ToString("x2"));
+                return Builder.ToString();
             }
         }
 
         private void btn_thoat_Click(object sender, EventArgs e)
         {
             this.Hide();
-            Form_Dang_Nhap formdangnhap = new Form_Dang_Nhap();
-            formdangnhap.ShowDialog();
+            Form_Dang_Nhap Form_Dang_Nhap = new Form_Dang_Nhap();
+            Form_Dang_Nhap.ShowDialog();
             this.Close();
         }
     }

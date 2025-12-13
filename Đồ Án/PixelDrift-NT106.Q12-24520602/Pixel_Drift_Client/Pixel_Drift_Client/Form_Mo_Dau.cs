@@ -19,22 +19,22 @@ namespace Pixel_Drift
 
         private void btn_dang_ki_Click(object sender, EventArgs e)
         {
-            if (ClientManager.IsConnected && !string.IsNullOrEmpty(Form_Dang_Nhap.Current_Username))
+            if (Client_Manager.Is_Connected && !string.IsNullOrEmpty(Form_Dang_Nhap.Current_Username))
             {
                 MessageBox.Show("Bạn đã đăng nhập rồi!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Form_Dang_Ki form = Application.OpenForms.OfType<Form_Dang_Ki>().FirstOrDefault();
+            Form_Dang_Ki Form = Application.OpenForms.OfType<Form_Dang_Ki>().FirstOrDefault();
 
-            if (form != null)
+            if (Form != null)
             {
-                form.Show();
+                Form.Show();
             }
             else
             {
-                form = new Form_Dang_Ki();
-                form.Show();
+                Form = new Form_Dang_Ki();
+                Form.Show();
             }
         }
 
@@ -45,22 +45,22 @@ namespace Pixel_Drift
 
         private void btn_dang_nhap_Click(object sender, EventArgs e)
         {
-            if (ClientManager.IsConnected && !string.IsNullOrEmpty(Form_Dang_Nhap.Current_Username))
+            if (Client_Manager.Is_Connected && !string.IsNullOrEmpty(Form_Dang_Nhap.Current_Username))
             {
                 MessageBox.Show("Bạn đã đăng nhập rồi!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Form_Dang_Nhap form = Application.OpenForms.OfType<Form_Dang_Nhap>().FirstOrDefault();
+            Form_Dang_Nhap Form = Application.OpenForms.OfType<Form_Dang_Nhap>().FirstOrDefault();
 
-            if (form != null)
+            if (Form != null)
             {
-                form.Show();
+                Form.Show();
             }
             else
             {
-                form = new Form_Dang_Nhap();
-                form.Show();
+                Form = new Form_Dang_Nhap();
+                Form.Show();
             }
         }
     }
